@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SHAMM Scan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a1422">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="SHAMM Scan">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+:root{--card:#12213a;--line:#1f3252;--ac:#4fd1d5;--tx:#f2f6fb;--mu:#8fa3bf}
+body{font:15px system-ui,sans-serif;background:#0a1422 radial-gradient(900px 520px at 85% -5%,#17385c 0%,#0a1422 62%) no-repeat fixed;color:var(--tx);min-height:100vh}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 16px;background:#0a1422;border-bottom:1px solid var(--line)}
+h1{font-size:18px;font-weight:500;flex:1}#cnt,.mu{color:var(--mu);font-size:12px}.lg{color:var(--ac);display:flex}
+button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:center}
+button:active{transform:scale(.97)}
+.pri{background:var(--ac);border-color:var(--ac);color:#042a33;font-weight:600}.red{color:#fb7185}
+.ib{background:none;border:0;padding:6px;color:#ddd;display:flex}
+#q{width:calc(100% - 24px);margin:10px 12px 0;padding:12px;border-radius:10px;border:1px solid #333;background:var(--card);color:#fff;font:inherit}
+main{max-width:760px;margin:auto;padding:16px 16px 120px}
+#empty{text-align:center;color:#888;padding:90px 16px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;gap:14px}
+.card img{width:96px;height:128px;object-fit:cover;object-position:top;background:#fff;border-radius:4px;cursor:pointer}
+.card.big{display:block;background:none;padding:0 2px 10px;border-bottom:1px solid var(--line);border-radius:0}
+.card.big img{width:46%;height:auto;max-height:300px}
+.nm{font-size:18px;font-weight:500;word-break:break-word}.dt{color:var(--mu);margin:2px 0 10px;font-size:14px}
+.row{display:flex;gap:16px}.acts{flex:1;display:flex;flex-direction:column;justify-content:center}
+.acts button{display:flex;gap:16px;align-items:center;border:0;background:none;padding:14px 4px;font-size:18px;text-align:left}
+.mid{flex:1;display:flex;flex-direction:column}.ic{margin-top:auto;display:flex;gap:22px;justify-content:flex-end}.ic button{background:none;border:0;padding:6px;color:#bbb}
+#list.files{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fc{background:var(--card);border-radius:12px;padding:10px;cursor:pointer}.fc img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top;background:#fff;border-radius:6px;display:block}
+.ar{display:flex;gap:8px;flex-wrap:wrap}.ar button{display:flex;gap:6px;align-items:center;padding:9px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:14px}
+.pg{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.pg img{width:100%;aspect-ratio:3/4;object-fit:contain;background:#000;border-radius:8px;cursor:pointer;display:block}
+.pg div{display:flex;justify-content:space-between;margin-top:6px}.pg button{padding:4px 9px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;justify-content:space-around;align-items:center;background:#0a1422;border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mu);font-size:12px;min-width:80px}
+nav button.on{color:var(--ac)}nav .fab{width:64px;height:64px;min-width:0;border-radius:50%;justify-content:center;background:var(--ac);color:#042a33;margin-top:-36px;box-shadow:0 4px 14px #000a}
+.ov{position:fixed;inset:0;z-index:20;background:#05080f;display:none;flex-direction:column}.ov.on{display:flex}
+.ov.sheet{background:#0009;justify-content:flex-end;z-index:30}
+#sh{background:#1e1e1e;border-radius:16px 16px 0 0;padding:8px 0 24px}
+#sh button{display:flex;gap:16px;align-items:center;width:100%;border:0;border-radius:0;background:none;padding:15px 22px;text-align:left;font-size:16px}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;padding:8px}
+.bar{display:flex;gap:8px;justify-content:center;align-items:center;padding:12px;flex-wrap:wrap}
+.shutter{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:var(--ac);padding:0}
+#camBox{position:relative}#vid{width:100%;height:100%;display:block}#ovc{position:absolute;inset:0}
+#cropCv{touch-action:none}#edCv{max-width:100%;max-height:100%}
+.sl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu)}.sl input{width:110px}
+.fb.on{background:var(--ac);border-color:var(--ac);color:#042a33}
+#toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,80px);opacity:0;transition:.25s;z-index:50;padding:10px 16px;border-radius:10px;background:#1e293b;border:1px solid var(--line);pointer-events:none;max-width:90%}
+#toast.show{transform:translate(-50%,0);opacity:1}#toast.err{background:#4c0519}#toast.ok{background:#064e3b}
+</style></head><body>
+<header id="hd"><img src="icon-192.png" alt="SHAMM" style="width:36px;height:36px;border-radius:10px;display:block"><h1>SHAMM Scan</h1><button class="pri" id="inst" hidden style="padding:6px 14px">Install</button><button class="ib" id="sb" data-ic="search"></button></header>
+<header id="dh" hidden><button class="ib" onclick="goHome()" data-ic="back"></button><h1 id="dn" onclick="rename()"></h1><span id="cnt"></span></header>
+<input id="q" placeholder="Search documents" hidden>
+<main>
+ <section id="home"><div id="list"></div><div id="empty" hidden>No documents yet.<br>Tap the camera button to scan.</div></section>
+ <section id="doc" hidden>
+  <div class="ar">
+   <button onclick="addMenu()" data-ic="plus">Add page</button><button onclick="allJPG()" data-ic="img">JPG</button>
+   <button onclick="savePDF()" data-ic="dl">PDF</button><button onclick="share()" data-ic="share">Share</button>
+   <button class="red" onclick="delDoc(cur.id)" data-ic="trash"></button>
+  </div>
+  <div class="grid" id="grid"></div>
+ </section>
+</main>
+<nav id="nav"><button class="on" id="nh" onclick="setTab('home')" data-ic="home">Home</button>
+ <button class="fab" onclick="addMenu()" data-ic="cam" aria-label="Scan"></button>
+ <button id="nf" onclick="setTab('files')" data-ic="files">Files</button></nav>
+<input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fg" accept="image/*" multiple hidden>
+<div class="ov sheet" id="sheet"><div id="sh"></div></div>
+
+<!-- Live camera -->
+<div class="ov" id="cam">
+ <div class="stage" id="camStage"><div id="camBox"><video id="vid" playsinline muted></video><canvas id="ovc"></canvas></div></div>
+ <div class="bar">
+  <button onclick="finishCam()">✔ Finish</button>
+  <button onclick="torch()">⚡ Flash</button><button class="shutter" onclick="snap(last)" aria-label="Capture"></button>
+  <label class="sl"><input type="checkbox" id="auto" checked> Auto capture</label>
+ </div>
+</div>
+
+<!-- Crop -->
+<div class="ov" id="crop">
+ <div class="stage" id="cropStage"><canvas id="cropCv"></canvas></div>
+ <div class="bar">
+  <button onclick="cropRot()">⟳ Rotate</button><button onclick="cropAuto()">✨ Auto</button><button onclick="cropFull()">⬜ Full</button>
+  <button onclick="cropCancel()">Cancel</button><button class="pri" onclick="cropOk()">Done ✓</button>
+ </div>
+</div>
+
+<!-- Edit -->
+<div class="ov" id="edit">
+ <div class="stage"><canvas id="edCv"></canvas></div>
+ <div class="bar">
+  <button class="fb" data-f="original">Original</button><button class="fb" data-f="magic">Magic Color</button>
+  <button class="fb" data-f="bw">B&amp;W</button><button class="fb" data-f="gray">Gray</button>
+ </div>
+ <div class="bar">
+  <label class="sl">Brightness <input type="range" id="brS" min="-60" max="60" value="0"></label>
+  <label class="sl">Contrast <input type="range" id="ctS" min="-50" max="50" value="0"></label>
+  <button onclick="edRot()">⟳ Rotate</button><button onclick="edCrop()">✂ Crop</button>
+ </div>
+ <div class="bar"><button onclick="edClose()">Cancel</button><button class="pri" onclick="edSave()">Save ✓</button></div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let pages=[],queue=[],fromCam=false,stream=null,camTimer=null,ed=null,cs={},last=null,stable=0,dc=null;
+function toast(m,t){const e=$('toast');e.textContent=m;e.className='show '+(t||'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',3000);}
+function cnv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+function fit(s,max){const k=Math.min(1,max/Math.max(s.width,s.height)),c=cnv(Math.round(s.width*k),Math.round(s.height*k));c.getContext('2d').drawImage(s,0,0,c.width,c.height);return c;}
+function rot(c){const o=cnv(c.height,c.width),x=o.getContext('2d');x.translate(o.width,0);x.rotate(Math.PI/2);x.drawImage(c,0,0);return o;}
+const inset=()=>[[.05,.05],[.95,.05],[.95,.95],[.05,.95]];
+
+/* ---------- Edge detection (pure JS, no OpenCV) ---------- */
+function blur3(g,w,h){const o=new Uint8Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,n=0;for(let j=-1;j<2;j++){const yy=y+j;if(yy<0||yy>=h)continue;for(let i=-1;i<2;i++){const xx=x+i;if(xx<0||xx>=w)continue;s+=g[yy*w+xx];n++;}}o[y*w+x]=s/n;}return o;}
+function otsu(g){const hs=new Array(256).fill(0);for(const v of g)hs[v]++;const T=g.length;let sum=0;for(let i=0;i<256;i++)sum+=i*hs[i];let sb=0,wb=0,mx=0,th=127;for(let i=0;i<256;i++){wb+=hs[i];if(!wb)continue;const wf=T-wb;if(!wf)break;sb+=i*hs[i];const mb=sb/wb,mf=(sum-sb)/wf,v=wb*wf*(mb-mf)**2;if(v>mx){mx=v;th=i;}}return th;}
+function area(q){let s=0;for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4];s+=a[0]*b[1]-b[0]*a[1];}return Math.abs(s)/2;}
+function comp(m,w,h){const seen=new Uint8Array(w*h),st=new Int32Array(w*h);let best=null;
+ for(let s=0;s<w*h;s++){if(!m[s]||seen[s])continue;let sp=0,n=0;st[sp++]=s;seen[s]=1;
+  let a=[1e9,0,0],b=[-1e9,0,0],c=[-1e9,0,0],d=[1e9,0,0];
+  while(sp){const p=st[--sp],x=p%w,y=(p/w)|0;n++;const sm=x+y,df=x-y;
+   if(sm<a[0])a=[sm,x,y];if(sm>b[0])b=[sm,x,y];if(df>c[0])c=[df,x,y];if(df<d[0])d=[df,x,y];
+   if(x>0&&m[p-1]&&!seen[p-1]){seen[p-1]=1;st[sp++]=p-1;}
+   if(x<w-1&&m[p+1]&&!seen[p+1]){seen[p+1]=1;st[sp++]=p+1;}
+   if(y>0&&m[p-w]&&!seen[p-w]){seen[p-w]=1;st[sp++]=p-w;}
+   if(y<h-1&&m[p+w]&&!seen[p+w]){seen[p+w]=1;st[sp++]=p+w;}}
+  if(!best||n>best.n)best={n,q:[[a[1],a[2]],[c[1],c[2]],[b[1],b[2]],[d[1],d[2]]]};}
+ return best;}
+function detect(src,W){
+ const sw=src.videoWidth||src.width,sh=src.videoHeight||src.height,w=W||160,h=Math.max(8,Math.round(sh*w/sw)),n=w*h;
+ dc=dc||cnv(w,h);dc.width=w;dc.height=h;const x=dc.getContext('2d',{willReadFrequently:true});x.drawImage(src,0,0,w,h);
+ const d=x.getImageData(0,0,w,h).data;let g=new Uint8Array(n);
+ for(let i=0;i<n;i++)g[i]=(d[i*4]*77+d[i*4+1]*150+d[i*4+2]*29)>>8;
+ g=blur3(blur3(g,w,h),w,h);const t=otsu(g);
+ const bs=[[],[],[]];for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++)if(xx<4||y<4||xx>=w-4||y>=h-4){const i=(y*w+xx)*4;bs[0].push(d[i]);bs[1].push(d[i+1]);bs[2].push(d[i+2]);}
+ const md=bs.map(a=>a.sort((p,q)=>p-q)[a.length>>1]),cd=new Uint8Array(n);
+ for(let i=0;i<n;i++)cd[i]=(Math.abs(d[i*4]-md[0])+Math.abs(d[i*4+1]-md[1])+Math.abs(d[i*4+2]-md[2]))>60?255:0;
+ const cm=blur3(cd,w,h).map(v=>v>127?1:0);
+ let best=null;
+ for(const m of [g.map(v=>v>t?1:0),g.map(v=>v>t?0:1),cm]){ // paper brighter / darker than background / differs from border colour
+  const r=comp(m,w,h);if(!r)continue;const fr=r.n/n,ar=area(r.q);if(fr<.12||fr>.97||ar<=0)continue;
+  const rect=r.n/ar;if(rect<.65)continue;
+  if(Math.min(...r.q.map((p,i)=>Math.hypot(p[0]-r.q[(i+1)%4][0],p[1]-r.q[(i+1)%4][1])))<.1*w)continue;
+  const sc=rect*Math.sqrt(fr);if(!best||sc>best.s)best={s:sc,q:r.q};}
+ return best&&best.q.map(p=>[p[0]/w,p[1]/h]);}
+
+/* ---------- Perspective warp ---------- */
+function warp(S,q){
+ const ds=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+ let w=Math.max(ds(q[0],q[1]),ds(q[3],q[2])),h=Math.max(ds(q[0],q[3]),ds(q[1],q[2]));
+ const k=Math.min(1,2000/Math.max(w,h));w=Math.max(8,Math.round(w*k));h=Math.max(8,Math.round(h*k));
+ const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]]=q;
+ const dx1=x1-x2,dx2=x3-x2,dx3=x0-x1+x2-x3,dy1=y1-y2,dy2=y3-y2,dy3=y0-y1+y2-y3;let g=0,hh=0;
+ if(dx3||dy3){const den=dx1*dy2-dx2*dy1;g=(dx3*dy2-dx2*dy3)/den;hh=(dx1*dy3-dx3*dy1)/den;}
+ const a=x1-x0+g*x1,b=x3-x0+hh*x3,d=y1-y0+g*y1,e=y3-y0+hh*y3;
+ const sw=S.width,sh=S.height,sd=S.getContext('2d').getImageData(0,0,sw,sh).data;
+ const o=cnv(w,h),ox=o.getContext('2d'),od=ox.createImageData(w,h),D=od.data;
+ for(let j=0;j<h;j++){const v=j/(h-1);for(let i=0;i<w;i++){const u=i/(w-1),z=g*u+hh*v+1,X=(a*u+b*v+x0)/z,Y=(d*u+e*v+y0)/z;
+  const px=Math.min(sw-1.001,Math.max(0,X)),py=Math.min(sh-1.001,Math.max(0,Y)),ix=px|0,iy=py|0,fx=px-ix,fy=py-iy,p=(iy*sw+ix)*4,o2=(j*w+i)*4,r=sw*4;
+  for(let c=0;c<3;c++)D[o2+c]=(sd[p+c]*(1-fx)+sd[p+4+c]*fx)*(1-fy)+(sd[p+r+c]*(1-fx)+sd[p+r+4+c]*fx)*fy;
+  D[o2+3]=255;}}
+ ox.putImageData(od,0,0);return o;}
+
+/* ---------- Filters with shadow removal ---------- */
+function flt(g,w,h,r,mx){const t=new Float32Array(w*h),o=new Float32Array(w*h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=mx?0:0,n=0;for(let i=Math.max(0,x-r);i<=Math.min(w-1,x+r);i++){const v=g[y*w+i];s=mx?Math.max(s,v):s+v;n++;}t[y*w+x]=mx?s:s/n;}
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,n=0;for(let j=Math.max(0,y-r);j<=Math.min(h-1,y+r);j++){const v=t[j*w+x];s=mx?Math.max(s,v):s+v;n++;}o[y*w+x]=mx?s:s/n;}
+ return o;}
+function illum(c){ // estimates paper brightness at every point (lighting + shadows)
+ const sw=Math.max(6,Math.round(c.width/10)),sh=Math.max(6,Math.round(c.height/10)),t=cnv(sw,sh),tx=t.getContext('2d');
+ tx.imageSmoothingQuality='high';tx.drawImage(c,0,0,sw,sh);const d=tx.getImageData(0,0,sw,sh).data;let g=new Float32Array(sw*sh);
+ for(let i=0;i<g.length;i++)g[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];
+ g=flt(g,sw,sh,2,true);g=flt(g,sw,sh,3);g=flt(g,sw,sh,3);return{g,sw,sh};}
+const lv=v=>(v-40)*1.31;
+function sharpen(d,W,H,a){const c=new Uint8ClampedArray(d),r=W*4;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=(y*W+x)*4;for(let k=0;k<3;k++){const j=i+k,b=(c[j-4]+c[j+4]+c[j-r]+c[j+r]+c[j])/5;d[j]=c[j]+a*(c[j]-b);}}}
+function filt(base,f,br,ct){
+ const W=base.width,H=base.height,o=cnv(W,H),x=o.getContext('2d');x.drawImage(base,0,0);
+ const id=x.getImageData(0,0,W,H),d=id.data,k=1+ct/50,L=f==='original'?null:illum(base);
+ const sx=L?L.sw/W:0,sy=L?L.sh/H:0;
+ for(let y=0;y<H;y++){let iy=0,fy=0;if(L){const gy=Math.min(L.sh-1.001,Math.max(0,(y+.5)*sy-.5));iy=gy|0;fy=gy-iy;}
+  for(let xx=0;xx<W;xx++){const i=(y*W+xx)*4;let r=d[i],g=d[i+1],b=d[i+2];
+   if(L){const gx=Math.min(L.sw-1.001,Math.max(0,(xx+.5)*sx-.5)),ix=gx|0,fx=gx-ix,G=L.g,sw=L.sw,
+     bg=(G[iy*sw+ix]*(1-fx)+G[iy*sw+ix+1]*fx)*(1-fy)+(G[(iy+1)*sw+ix]*(1-fx)+G[(iy+1)*sw+ix+1]*fx)*fy,s=255/Math.max(40,bg);
+    r*=s;g*=s;b*=s;
+    if(f==='magic'){r=lv(r);g=lv(g);b=lv(b);}else{r=g=b=lv(.299*r+.587*g+.114*b);}}
+   r=(r-128)*k+128+br;g=(g-128)*k+128+br;b=(b-128)*k+128+br;
+   if(f==='bw'){r=g=b=(.299*r+.587*g+.114*b)>150?255:0;}
+   d[i]=r;d[i+1]=g;d[i+2]=b;}}
+ if(f==='magic'||f==='gray')sharpen(d,W,H,.6);x.putImageData(id,0,0);return o;}
+
+/* ---------- Icons ---------- */
+const P={share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',
+dl:'<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>',more:'<circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>',
+cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',scan:'<path d="M4 8V5h3M20 8V5h-3M4 16v3h3M20 16v3h-3M7 12h10"/>',
+img:'<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M5 18l5-5 4 4 2-2 3 3"/>',
+home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',files:'<path d="M5 3h9l5 5v13H5zM14 3v5h5"/>',search:'<circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/>',
+back:'<path d="M15 5l-7 7 7 7"/>',plus:'<path d="M12 5v14M5 12h14"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h6"/>'};
+const ic=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${P[k]}</svg>`;
+document.querySelectorAll('[data-ic]').forEach(e=>e.insertAdjacentHTML('afterbegin',ic(e.dataset.ic)));
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- On-device storage (IndexedDB) ---------- */
+let docs=[],cur=null,tab='home',sfn=[];
+const idb=new Promise((ok,no)=>{const r=indexedDB.open('shamm',1);r.onupgradeneeded=()=>r.result.createObjectStore('docs',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=no;});
+const tx=(m,fn)=>idb.then(d=>new Promise((ok,no)=>{const t=d.transaction('docs',m),q=fn(t.objectStore('docs'));t.oncomplete=()=>ok(q&&q.result);t.onerror=no;}));
+function saveDoc(){if(!cur||!pages.length)return Promise.resolve();
+ const rec={id:cur.id,name:cur.name,ts:cur.ts,th:fit(pages[0].base,320).toDataURL('image/jpeg',.8),
+  pages:pages.map(p=>{p.b=p.b||p.base.toDataURL('image/jpeg',.92);if(!p.s&&p.sc)p.s=p.sc.toDataURL('image/jpeg',.9);p.sc=null;return{b:p.b,s:p.s||null,q:p.q||null,r:p.r||0,f:p.f,br:p.br,ct:p.ct};})};
+ const m={id:rec.id,name:rec.name,ts:rec.ts,th:rec.th,n:pages.length},i=docs.findIndex(d=>d.id===m.id);i<0?docs.unshift(m):docs[i]=m;
+ return tx('readwrite',s=>s.put(rec)).catch(()=>toast('Could not save to device storage','err'));}
+async function loadDoc(id){const rec=await tx('readonly',s=>s.get(id));if(!rec)return;cur={id:rec.id,name:rec.name,ts:rec.ts};
+ pages=await Promise.all(rec.pages.map(async r=>{const base=await new Promise(ok=>{const i=new Image();i.onload=()=>{const c=cnv(i.width,i.height);c.getContext('2d').drawImage(i,0,0);ok(c);};i.src=r.b;});
+  const p={base,b:r.b,s:r.s,q:r.q,r:r.r||0,f:r.f,br:r.br,ct:r.ct};render(p);return p;}));}
+tx('readonly',s=>s.getAll()).then(r=>{docs=(r||[]).map(d=>({id:d.id,name:d.name,ts:d.ts,th:d.th,n:d.pages.length})).sort((a,b)=>b.ts-a.ts);home();}).catch(()=>{});
+
+/* ---------- Home screen ---------- */
+const fmt=ts=>{const d=new Date(ts);return d.toDateString()===new Date().toDateString()?'Today':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});};
+function home(){const t=$('q').value.trim().toLowerCase(),L=docs.filter(d=>d.name.toLowerCase().includes(t));
+ $('empty').hidden=docs.length>0;$('list').className=tab==='files'?'files':'';
+ $('list').innerHTML=L.map((d,i)=>{const meta=`${fmt(d.ts)} · ${d.n} page${d.n>1?'s':''}`;
+  if(tab==='files')return `<div class="fc" onclick="openDoc('${d.id}')"><img src="${d.th}"><div class="nm" style="font-size:14px;margin-top:8px">${esc(d.name)}</div><div class="dt" style="margin:0">${meta}</div></div>`;
+  if(i===0&&!t)return `<div class="card big"><div class="nm">${esc(d.name)}</div><div class="dt">${meta}</div><div class="row"><img src="${d.th}" onclick="openDoc('${d.id}')"><div class="acts"><button onclick="dShare('${d.id}')">${ic('share')}Share</button><button onclick="dPDF('${d.id}')">${ic('dl')}Save as PDF</button><button onclick="more('${d.id}')">${ic('more')}More</button></div></div></div>`;
+  return `<div class="card"><img src="${d.th}" onclick="openDoc('${d.id}')"><div class="mid"><div class="nm">${esc(d.name)}</div><div class="dt">${meta}</div><div class="ic"><button onclick="dShare('${d.id}')">${ic('share')}</button><button onclick="dPDF('${d.id}')">${ic('dl')}</button><button onclick="more('${d.id}')">${ic('more')}</button></div></div></div>`;}).join('');}
+function setTab(t){tab=t;$('nh').classList.toggle('on',t==='home');$('nf').classList.toggle('on',t==='files');home();}
+$('sb').onclick=()=>{const q=$('q');q.hidden=!q.hidden;if(q.hidden){q.value='';home();}else q.focus();};$('q').oninput=home;
+function view(v){$('home').hidden=$('hd').hidden=$('nav').hidden=v!=='home';$('doc').hidden=$('dh').hidden=v!=='doc';if(v==='doc')$('dn').textContent=cur.name;}
+function goHome(){saveDoc().then(home);view('home');home();}
+function sheet(items){sfn=items.map(i=>i[2]);$('sh').innerHTML=items.map((it,i)=>`<button onclick="pick(${i})">${ic(it[0])}${it[1]}</button>`).join('');$('sheet').classList.add('on');}
+function pick(i){$('sheet').classList.remove('on');sfn[i]();}
+$('sheet').onclick=e=>{if(e.target.id==='sheet')e.target.classList.remove('on');};
+function addMenu(){sheet([['scan','Live Scan (auto edge detect)',()=>scan('cam')],['cam','Take photo with phone camera',()=>scan('fc')],['img','Import from gallery',()=>scan('fg')]]);}
+function newDoc(){const day=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),b='SHAMM Scan '+day,k=docs.filter(d=>d.name.startsWith(b)).length;cur={id:'d'+Date.now(),name:k?`${b} (${k})`:b,ts:Date.now()};pages=[];}
+function scan(k){if(!$('home').hidden){newDoc();view('doc');ui(1);}k==='cam'?openCam():$(k).click();}
+async function openDoc(id){toast('Opening...');await loadDoc(id);view('doc');ui(1);}
+async function dShare(id){await loadDoc(id);share();}
+async function dPDF(id){await loadDoc(id);savePDF();}
+function more(id){sheet([['edit','Rename',async()=>{await loadDoc(id);rename();}],['img','Save as JPG',async()=>{await loadDoc(id);allJPG();}],['trash','Delete',()=>delDoc(id)]]);}
+function rename(){const n=prompt('Document name',cur.name);if(n&&n.trim()){cur.name=n.trim();saveDoc().then(()=>{$('dn').textContent=cur.name;home();});}}
+async function delDoc(id){if(!confirm('Delete this document?'))return;await tx('readwrite',s=>s.delete(id));docs=docs.filter(d=>d.id!==id);view('home');home();}
+
+/* ---------- Pages inside a document ---------- */
+function addPage(base,S,q){const p={base,f:'magic',br:0,ct:0,sc:S,q,r:0};render(p);pages.push(p);ui();toast('Page '+pages.length+' added','ok');}
+function render(p){p.out=filt(p.base,p.f,p.br,p.ct).toDataURL('image/jpeg',.92);}
+function ui(ns){const n=pages.length;$('cnt').textContent=n?n+(n>1?' pages':' page'):'';
+ $('grid').innerHTML=n?pages.map((p,i)=>`<div class="pg"><img src="${p.out}" onclick="openEdit(${i})"><div>
+ <span><button onclick="mv(${i},-1)" ${i?'':'disabled'}>◀</button> <button onclick="mv(${i},1)" ${i<n-1?'':'disabled'}>▶</button></span>
+ <span><button onclick="oneJPG(${i})">⬇</button> <button class="red" onclick="del(${i})">🗑</button></span></div></div>`).join(''):'<p class="mu">No pages yet. Tap Add page.</p>';
+ if(!ns)saveDoc();}
+function mv(i,o){const j=i+o;if(j<0||j>=pages.length)return;pages.splice(j,0,pages.splice(i,1)[0]);ui();}
+function del(i){pages.splice(i,1);if(!pages.length){tx('readwrite',s=>s.delete(cur.id));docs=docs.filter(d=>d.id!==cur.id);goHome();return;}ui();}
+
+/* ---------- Import ---------- */
+function loadFile(f){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{ok(fit(i,2400));URL.revokeObjectURL(u);};i.onerror=no;i.src=u;});}
+async function importFiles(fs){for(const f of fs){if(!f.type.startsWith('image/'))continue;try{queue.push(await loadFile(f));}catch(e){toast('Could not load image','err');}}
+ fromCam=false;if(!$('crop').classList.contains('on'))nextCrop();}
+$('fc').onchange=e=>{importFiles([...e.target.files]);e.target.value='';};
+$('fg').onchange=e=>{importFiles([...e.target.files]);e.target.value='';};
+function nextCrop(){const c=queue.shift();if(c)openCrop(c,detect(c,320)||inset());}
+
+/* ---------- Crop screen ---------- */
+function openCrop(src,q){cs={src,q:q.map(p=>p.slice()),drag:-1};$('crop').classList.add('on');layoutCrop();}
+function layoutCrop(){const st=$('cropStage'),s=Math.min((st.clientWidth-16)/cs.src.width,(st.clientHeight-16)/cs.src.height),cv=$('cropCv');cv.width=Math.round(cs.src.width*s);cv.height=Math.round(cs.src.height*s);drawCrop();}
+function drawCrop(){const cv=$('cropCv'),x=cv.getContext('2d'),W=cv.width,H=cv.height;x.drawImage(cs.src,0,0,W,H);
+ const P=cs.q.map(p=>[p[0]*W,p[1]*H]);x.beginPath();P.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.closePath();
+ x.fillStyle='rgba(79,209,213,.18)';x.fill();x.lineWidth=2.5;x.strokeStyle='#4fd1d5';x.stroke();
+ P.forEach(p=>{x.beginPath();x.arc(p[0],p[1],11,0,7);x.fillStyle='#fff';x.fill();x.stroke();});}
+(()=>{const cv=$('cropCv'),pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+ cv.onpointerdown=e=>{const[x,y]=pos(e);let b=-1,bd=60;cs.q.forEach((p,i)=>{const d=Math.hypot(p[0]*cv.width-x,p[1]*cv.height-y);if(d<bd){bd=d;b=i;}});cs.drag=b;if(b>=0)cv.setPointerCapture(e.pointerId);};
+ cv.onpointermove=e=>{if(cs.drag<0)return;const[x,y]=pos(e);cs.q[cs.drag]=[Math.min(1,Math.max(0,x/cv.width)),Math.min(1,Math.max(0,y/cv.height))];drawCrop();};
+ cv.onpointerup=cv.onpointercancel=()=>{cs.drag=-1;};})();
+const rotQ=q=>{const m=p=>[1-p[1],p[0]];return[m(q[3]),m(q[0]),m(q[1]),m(q[2])];};
+function cropRot(){cs.q=rotQ(cs.q);cs.src=rot(cs.src);layoutCrop();}
+function cropAuto(){const q=detect(cs.src,320);cs.q=q||inset();if(!q)toast('Edges not found, drag the corners manually');drawCrop();}
+function cropFull(){cs.q=[[0,0],[1,0],[1,1],[0,1]];drawCrop();}
+function cropOk(){const S=cs.src,q=cs.q.map(p=>p.slice()),pts=q.map(p=>[p[0]*S.width,p[1]*S.height]),redo=cs.redo;toast('Processing...');
+ setTimeout(()=>{const b=warp(S,pts);if(redo!=null){const p=pages[redo];Object.assign(p,{base:b,b:null,sc:S,s:null,q,r:0});render(p);cs.redo=null;$('crop').classList.remove('on');ui();}else{addPage(b,S,q);cropClose();}},30);}
+function cropCancel(){if(cs.redo!=null){const p=pages[cs.redo];cs.redo=null;$('crop').classList.remove('on');render(p);ui();return;}cropClose();}
+function cropClose(){$('crop').classList.remove('on');if(queue.length)nextCrop();else if(fromCam)openCam();}
+addEventListener('resize',()=>{if($('crop').classList.contains('on'))layoutCrop();});
+
+/* ---------- Live camera ---------- */
+async function openCam(){
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Live camera needs https. Use the Photo button instead.','err');return;}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1440},advanced:[{focusMode:'continuous'}]},audio:false});}
+ catch(e){toast('Camera permission denied. Use the Photo button instead.','err');return;}
+ const v=$('vid');v.srcObject=stream;await v.play();$('cam').classList.add('on');sizeCam();stable=0;last=null;clearInterval(camTimer);camTimer=setInterval(camTick,220);}
+function sizeCam(){const v=$('vid'),st=$('camStage'),s=Math.min((st.clientWidth-16)/v.videoWidth,(st.clientHeight-16)/v.videoHeight),w=Math.round(v.videoWidth*s),h=Math.round(v.videoHeight*s);
+ $('camBox').style.width=w+'px';$('camBox').style.height=h+'px';$('ovc').width=w;$('ovc').height=h;}
+function camTick(){const v=$('vid');if(!v.videoWidth)return;const q=detect(v),o=$('ovc'),x=o.getContext('2d');x.clearRect(0,0,o.width,o.height);
+ if(!q){stable=0;last=null;return;}
+ const P=q.map(p=>[p[0]*o.width,p[1]*o.height]);x.beginPath();P.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.closePath();
+ x.fillStyle='rgba(79,209,213,.2)';x.fill();x.lineWidth=3;x.strokeStyle='#4fd1d5';x.stroke();
+ stable=(last&&q.every((p,i)=>Math.abs(p[0]-last[i][0])<.025&&Math.abs(p[1]-last[i][1])<.025))?stable+1:0;last=q;
+ if($('auto').checked&&stable>=6)snap(q);}
+let tOn=false;
+async function torch(){const t=stream&&stream.getVideoTracks()[0],c=t&&t.getCapabilities&&t.getCapabilities();if(!c||!c.torch){toast('Flash not supported on this device','err');return;}tOn=!tOn;try{await t.applyConstraints({advanced:[{torch:tOn}]});}catch(e){toast('Flash failed','err');}}
+function stopCam(){tOn=false;clearInterval(camTimer);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('cam').classList.remove('on');}
+function finishCam(){stopCam();fromCam=false;if(!pages.length)goHome();}
+function snap(q){const v=$('vid');if(!v.videoWidth)return;const f=cnv(v.videoWidth,v.videoHeight);f.getContext('2d').drawImage(v,0,0);
+ const qq=q||detect(f,320)||inset();if(navigator.vibrate)navigator.vibrate(40);stopCam();fromCam=true;openCrop(fit(f,2400),qq);}
+
+/* ---------- Edit screen ---------- */
+function openEdit(i){const p=pages[i];ed={i,base:p.base,f:p.f,br:p.br,ct:p.ct,r:p.r||0,pv:null};$('brS').value=ed.br;$('ctS').value=ed.ct;$('edit').classList.add('on');prev();}
+function prev(){cancelAnimationFrame(ed.raf);ed.raf=requestAnimationFrame(()=>{ed.pv=ed.pv||fit(ed.base,900);const o=filt(ed.pv,ed.f,ed.br,ed.ct),cv=$('edCv');cv.width=o.width;cv.height=o.height;cv.getContext('2d').drawImage(o,0,0);
+ document.querySelectorAll('.fb').forEach(b=>b.classList.toggle('on',b.dataset.f===ed.f));});}
+document.querySelectorAll('.fb').forEach(b=>b.onclick=()=>{ed.f=b.dataset.f;prev();});
+$('brS').oninput=e=>{ed.br=+e.target.value;prev();};$('ctS').oninput=e=>{ed.ct=+e.target.value;prev();};
+function edRot(){ed.base=rot(ed.base);ed.r=(ed.r+1)%4;ed.pv=null;prev();}
+function edCrop(){const p=pages[ed.i],i=ed.i;p.f=ed.f;p.br=ed.br;p.ct=ed.ct;p.r=ed.r;if(ed.base!==p.base){p.base=ed.base;p.b=null;}edClose();recrop(i);}
+async function recrop(i){const p=pages[i];if(!p.q||!(p.sc||p.s)){toast('Original image not available for this page','err');render(p);ui();return;}
+ let c=p.sc||await new Promise(ok=>{const im=new Image();im.onload=()=>{const k=cnv(im.width,im.height);k.getContext('2d').drawImage(im,0,0);ok(k);};im.src=p.s;}),q=p.q.map(a=>a.slice());
+ for(let k=0;k<(p.r||0);k++){c=rot(c);q=rotQ(q);}fromCam=false;queue=[];openCrop(c,q);cs.redo=i;}
+function edClose(){$('edit').classList.remove('on');}
+function edSave(){const p=pages[ed.i];if(ed.base!==p.base)p.b=null;p.base=ed.base;p.r=ed.r;p.f=ed.f;p.br=ed.br;p.ct=ed.ct;toast('Saving...');setTimeout(()=>{render(p);ui();edClose();},20);}
+
+/* ---------- Export ---------- */
+function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;document.body.appendChild(a);a.click();a.remove();}
+function oneJPG(i){dl(pages[i].out,'SHAMM_Scan_'+(i+1)+'.jpg');}
+function allJPG(){if(!pages.length)return;pages.forEach((p,i)=>setTimeout(()=>oneJPG(i),i*300));}
+function mkPDF(){if(!window.jspdf){toast('PDF library failed to load. Check your internet connection.','err');return null;}
+ const{jsPDF}=window.jspdf;let pdf;
+ pages.forEach((p,i)=>{const w=p.base.width,h=p.base.height,pw=w>=h?297:297*w/h,ph=w>=h?297*h/w:297,fm=[Math.min(pw,ph),Math.max(pw,ph)],or=pw>ph?'l':'p';
+  if(!i)pdf=new jsPDF({orientation:or,unit:'mm',format:fm});else pdf.addPage(fm,or);
+  pdf.addImage(p.out,'JPEG',0,0,pw,ph,undefined,'FAST');});return pdf;}
+function savePDF(){if(!pages.length)return;const p=mkPDF();if(p){p.save('SHAMM_Scan_'+new Date().toISOString().slice(0,10)+'.pdf');toast('PDF saved','ok');}}
+async function share(){if(!pages.length)return;const p=mkPDF();if(!p)return;
+ const file=new File([p.output('blob')],'SHAMM_Scan.pdf',{type:'application/pdf'});
+ if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'SHAMM Scan'});}catch(e){}}
+ else toast('Sharing is not supported on this device. Use the PDF button.','err');}
+
+/* ---------- Installable app (PWA) ---------- */
+let ip=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e;$('inst').hidden=false;});
+$('inst').onclick=()=>{if(ip){ip.prompt();ip=null;$('inst').hidden=true;}};
+addEventListener('appinstalled',()=>{$('inst').hidden=true;toast('App installed','ok');});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
